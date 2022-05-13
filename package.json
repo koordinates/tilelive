@@ -54,7 +54,7 @@
     "node": ">=4"
   },
   "scripts": {
-    "test": "eslint --no-eslintrc -c .eslintrc lib/*.js && tape test/*.test.js",
+    "test": "eslint --no-eslintrc -c .eslintrc lib/*.js && tape test/stream-projected.test.js",
     "cov": "istanbul cover tape test/*.test.js && coveralls < ./coverage/lcov.info"
   }
 }
