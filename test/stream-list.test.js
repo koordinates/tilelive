@@ -243,3 +243,38 @@ test('list: 10000', function(assert) {
         assert.end();
     });
 });
+
+// A source whose tiles are all solid and fully transparent, ie. "empty".
+function Emptysource() {}
+Emptysource.prototype.getTile = function(z, x, y, callback) {
+    var tile = new Buffer(1024);
+    tile.solid = '0,0,0,0';
+    setImmediate(function() { callback(null, tile, {}); });
+};
+Emptysource.prototype.getInfo = function(callback) { callback(null, {}); };
+
+test('list: keeps empty tiles by default', function(assert) {
+    var file = fs.createReadStream(path.join(__dirname,'fixtures','filescheme.flat'));
+    var get = tilelive.createReadStream(new Emptysource(), {type:'list'});
+    var put = tilelive.createWriteStream(new Timedsource({}));
+    get.on('error', function(err) { assert.ifError(err); });
+    put.on('error', function(err) { assert.ifError(err); });
+    put.on('stop', function() {
+        assert.deepEqual(get.stats, { ops:77, total:77, skipped:0, done:77 });
+        assert.end();
+    });
+    file.pipe(get).pipe(put);
+});
+
+test('list: skips empty tiles with skipEmpty', function(assert) {
+    var file = fs.createReadStream(path.join(__dirname,'fixtures','filescheme.flat'));
+    var get = tilelive.createReadStream(new Emptysource(), {type:'list', skipEmpty:true});
+    var put = tilelive.createWriteStream(new Timedsource({}));
+    get.on('error', function(err) { assert.ifError(err); });
+    put.on('error', function(err) { assert.ifError(err); });
+    put.on('stop', function() {
+        assert.deepEqual(get.stats, { ops:77, total:77, skipped:77, done:77 });
+        assert.end();
+    });
+    file.pipe(get).pipe(put);
+});
